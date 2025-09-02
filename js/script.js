@@ -119,6 +119,15 @@ const GRADES_MAP = {
 let intervalo;
 let palabrasSeleccionadas = [];
 
+
+const USED = {};
+
+function getUsedSet(grade, round) {
+    if (!USED[grade]) USED[grade] = {};
+    if (!USED[grade][round]) USED[grade][round] = new Set();
+    return USED[grade][round];
+}
+
 function resetearAnimacion() {
     ELEMENTOS.texto.textContent = '';
     const abeja = document.getElementById('abeja');
@@ -127,66 +136,63 @@ function resetearAnimacion() {
 }
 
 function girarNumeros(grade) {
-  const E = ELEMENTOS;
-  if (!E?.icono || E.icono.getAttribute('alt') === 'disabled') return;
+    const E = ELEMENTOS;
+    if (!E?.icono || E.icono.getAttribute('alt') === 'disabled') return;
 
-  // 1) Validar round seleccionado
-  const roundValue = E.dropdownMenuButton?.getAttribute('value');
-  if (!roundValue || roundValue === 'notselect') {
+    const roundValue = E.dropdownMenuButton?.getAttribute('value');
+    if (!roundValue || roundValue === 'notselect') {
+        resetearAnimacion();
+        iniciarAnimacionEscritura("Bzz choose a round");
+        return;
+    }
+
+    const pool = (DICCIONARIO?.[grade]?.[roundValue]) || [];
+    const total = pool.length;
+    const used = getUsedSet(grade, roundValue);
+    const restantes = total - used.size;
+
+
+    E.numero.textContent = '0';
+    E.numero.style.paddingTop = '15%';
+    E.numero.style.fontSize = '10em';
+
+
+    if (restantes <= 0) {
+        resetearAnimacion();
+        iniciarAnimacionEscritura("Bzz I ran out of Words");
+        E.icono.setAttribute('title', '0 word left');
+        E.icono.setAttribute('alt', 'enabled');
+        return;
+    }
+
+    E.icono.setAttribute('alt', 'disabled');
     resetearAnimacion();
-    iniciarAnimacionEscritura("Bzz choose a round");
-    return;
-  }
 
-  // 2) Obtener pool y disponibles
-  const pool = (DICCIONARIO?.[grade]?.[roundValue]) || [];
-  const total = pool.length;
-  const restantes = total - palabrasSeleccionadas.length;
+    intervalo = setInterval(() => {
+        const r = getRandomInt(1, total + 1);
+        E.numero.textContent = r;
+    }, 100);
 
-  // Estilo del display
-  E.numero.textContent = '0';
-  E.numero.style.paddingTop = '15%';
-  E.numero.style.fontSize  = '10em';
+    setTimeout(() => {
+        clearInterval(intervalo);
 
-  // 3) Si no quedan, no animes: muestra 0 y mensaje
-  if (restantes <= 0) {
-    resetearAnimacion();
-    iniciarAnimacionEscritura("Bzz I ran out of Words");
-    E.icono.setAttribute('title', 'Quedan 0 palabras');
-    E.icono.setAttribute('alt', 'enabled');
-    return;
-  }
+        let finalNum, palabraAsociada;
+        do {
+            finalNum = getRandomInt(1, total + 1);
+            palabraAsociada = pool[finalNum - 1];
+        } while (used.has(palabraAsociada));
 
-  // 4) Animación normal
-  E.icono.setAttribute('alt', 'disabled');
-  resetearAnimacion();
+        E.numero.textContent = finalNum;
+        used.add(palabraAsociada);
 
-  intervalo = setInterval(() => {
-    const r = getRandomInt(1, total + 1);
-    E.numero.textContent = r;
-  }, 100);
+        iniciarAnimacionEscritura(palabraAsociada, E.numero, "");
 
-  setTimeout(() => {
-    clearInterval(intervalo);
-
-    // Elegir una palabra no usada
-    let finalNum, palabraAsociada;
-    do {
-      finalNum = getRandomInt(1, total + 1);
-      palabraAsociada = pool[finalNum - 1];
-    } while (palabrasSeleccionadas.includes(palabraAsociada));
-
-    E.numero.textContent = finalNum;
-    palabrasSeleccionadas.push(palabraAsociada);
-
-    iniciarAnimacionEscritura(palabraAsociada, E.numero, "");
-
-    // Tooltip actualizado y habilitar nuevamente la lupa
-    const left = total - palabrasSeleccionadas.length;
-    E.icono.setAttribute('title', `Quedan ${left} palabra${left === 1 ? '' : 's'}`);
-    E.icono.setAttribute('alt', 'enabled');
-  }, 2000);
+        const left = total - used.size;
+        E.icono.setAttribute('title', `${left} ${left === 1 ? 'word left' : 'words left'}`);
+        E.icono.setAttribute('alt', 'enabled');
+    }, 2000);
 }
+
 
 
 function iniciarAnimacionEscritura(palabra, numeroDiv) {
@@ -318,13 +324,12 @@ function loadContent(level) {
             document.getElementById("container-body").innerHTML = html;
             refreshELEMENTOS();
 
-            // actualizar título
+
             const titulo = document.getElementById("title");
             if (titulo && GRADES_MAP[level]) {
                 titulo.innerHTML = `<img src="img/bee.png" width="60" height="60" alt=""> ${GRADES_MAP[level]}`;
             }
 
-            // estado global
             window.STATE = { grade: level, name: GRADES_MAP[level] };
 
             const dropdownBtn = document.getElementById("dropdownMenuButton");
@@ -332,14 +337,19 @@ function loadContent(level) {
                 dropdownBtn.innerHTML = `<i class="fa fa-cog fa-spin fa-1x fa-fw fa-sm text-white-50"></i> Normal Round`;
                 dropdownBtn.setAttribute("value", "Normal Round");
             }
+            const icono = document.getElementById('icono');
+            if (icono) {
+                const pool = DICCIONARIO[level]["Normal Round"] || [];
+                const used = getUsedSet(level, "Normal Round");
+                const left = pool.length - used.size;
+                icono.setAttribute('title', `${left} ${left === 1 ? 'word left' : 'words left'}`);
+                icono.setAttribute("onclick", `girarNumeros('${level}')`);
+            }
             let resetbtn = document.getElementById("resetbutton");
             if (resetbtn) {
                 resetbtn.setAttribute("onclick", `loadContent('${level}')`);
             }
-            const icono = document.getElementById("icono");
-            if (icono) {
-                icono.setAttribute("onclick", `girarNumeros('${level}')`);
-            }
+
         })
         .catch(error => console.error("Error cargando vista:", error));
 }
