@@ -29,7 +29,16 @@ const DICCIONARIO = {
             "sang", "wish", "kisses", "fastest", "seed"
         ],
         "Extra Round": [
-
+            "leg", "ant", "small", "got", "pet",
+            "back", "Max", "pen", "dad", "pot",
+            "bag", "lip", "tent", "fat", "quick",
+            "big", "hop", "up", "Ron", "rock",
+            "comb", "sit", "wig", "lock", "sick",
+            "can", "not", "way", "fish", "see",
+            "rat", "pants", "wet", "help", "sad",
+            "fits", "pat", "wing", "hot", "song",
+            "bad", "mat", "use", "fox", "ring",
+            "did", "man", "van", "kit", "pen"
         ]
     }, "3_grade": {
         "Normal Round": [
@@ -45,6 +54,16 @@ const DICCIONARIO = {
             "mammals", "teacher", "amazing", "different", "fire"
         ],
         "Extra Round": [
+            "feathers", "afraid", "trunk", "cake", "lost",
+            "again", "friends", "sing", "always", "games",
+            "think", "dance", "monkey", "baby", "her",
+            "Tuesday", "dresses", "nothing", "ball", "hurry",
+            "slower", "club", "lucky", "anyone", "growing",
+            "spring", "chair", "morning", "after", "heavy",
+            "under", "ducks", "our", "bigger", "Jack",
+            "water", "egg", "nose", "bird", "window",
+            "ear", "saddest", "body", "July", "everyone",
+            "sang", "wish", "kisses", "fastest", "seed"
         ]
     }, "4_grade": {
         "Normal Round": [
@@ -60,6 +79,16 @@ const DICCIONARIO = {
             "wasn’t", "through", "November", "aunts", "character"
         ],
         "Extra Round": [
+            "experiment", "chase", "morning", "state", "world",
+            "country", "enjoy", "machines", "miss", "safe",
+            "shape", "woman", "bunch", "early", "listen",
+            "rescue", "whale", "build", "dust", "spider",
+            "nests", "someone", "wonderful", "cover", "excited",
+            "lunch", "smile", "talking", "climb", "everything",
+            "lemonade", "late", "people", "amphibian", "dropping",
+            "hungry", "pineapple", "vapor", "brave", "drawing",
+            "horse", "vote", "born", "danger", "Wednesday",
+            "mammals", "teacher", "amazing", "different", "fire"
         ]
     }, "5_grade": {
         "Normal Round": [
@@ -75,6 +104,16 @@ const DICCIONARIO = {
             "exciting", "message", "accident", "chemist", "sentence"
         ],
         "Extra Round": [
+            "Sunday", "motion", "thousand", "Christmas", "gardener",
+            "minute", "soap", "boring", "fridge", "worried",
+            "million", "sequence", "butterfly", "flippers", "uniform",
+            "mechanic", "quarter", "because", "envelope", "spotted",
+            "together", "March", "private", "bicycle", "enough",
+            "worth", "leave", "passenger", "geography", "path",
+            "backyard", "dynamic", "glove", "hatch", "penguin",
+            "actor", "dessert", "twice", "August", "daughter",
+            "tooth", "great", "parents", "actually", "chess",
+            "wasn’t", "through", "November", "aunts", "character"
         ]
     }, "6_grade": {
         "Normal Round": [
@@ -90,6 +129,16 @@ const DICCIONARIO = {
             "comfortable", "thousand", "hairdryer", "opposite", "account"
         ],
         "Extra Round": [
+            "newspaper", "shopping", "camera", "explore", "waitress",
+            "nowhere", "screen", "business", "electricity", "young",
+            "kingdom", "relaxing", "breakfast", "dollar", "visited",
+            "join", "quick", "before", "didn’t", "umbrella",
+            "juice", "quietly", "autumn", "choose", "tomorrow",
+            "journey", "people", "assistant", "correct", "traffic",
+            "introduce", "potatoes", "August", "crowded", "summer",
+            "healthy", "photography", "address", "college", "strange",
+            "hobby", "passport", "anybody", "cinnamon", "sometimes",
+            "exciting", "message", "accident", "chemist", "sentence"
         ]
     }
 
@@ -114,7 +163,14 @@ const GRADES_MAP = {
     "6_grade": "6th Grade"
 };
 
-
+function updateTooltip(grade, round) {
+    const icono = document.getElementById('icono');
+    if (!icono) return;
+    const pool = (DICCIONARIO?.[grade]?.[round]) || [];
+    const used = getUsedSet(grade, round);
+    const left = pool.length - used.size;
+    icono.setAttribute('title', `${left} ${left === 1 ? 'word left' : 'words left' } for ${round}`);
+}
 
 let intervalo;
 let palabrasSeleccionadas = [];
@@ -151,16 +207,15 @@ function girarNumeros(grade) {
     const used = getUsedSet(grade, roundValue);
     const restantes = total - used.size;
 
-
     E.numero.textContent = '0';
     E.numero.style.paddingTop = '15%';
     E.numero.style.fontSize = '10em';
 
-
+    // si no quedan, no animes
     if (restantes <= 0) {
         resetearAnimacion();
         iniciarAnimacionEscritura("Bzz I ran out of Words");
-        E.icono.setAttribute('title', '0 word left');
+        E.icono.setAttribute('title', '0 words left');   // ← plural
         E.icono.setAttribute('alt', 'enabled');
         return;
     }
@@ -187,8 +242,8 @@ function girarNumeros(grade) {
 
         iniciarAnimacionEscritura(palabraAsociada, E.numero, "");
 
-        const left = total - used.size;
-        E.icono.setAttribute('title', `${left} ${left === 1 ? 'word left' : 'words left'}`);
+        // tooltip para ESTE grade+round
+        updateTooltip(grade, roundValue);
         E.icono.setAttribute('alt', 'enabled');
     }, 2000);
 }
@@ -283,14 +338,15 @@ function agregarPalabraATabla2(id, palabra) {
 }
 
 function selectRonda(ronda) {
-    const elemento = document.getElementById('dropdownMenuButton');
-    elemento.innerHTML = `<i class="fa fa-cog fa-spin fa-1x fa-fw fa-sm text-white-50"></i> ${ronda} Round`;
-    var valor = `${ronda} Round`;
-    elemento.setAttribute('value', valor);
-    //reset estado icono
-    ELEMENTOS.icono.setAttribute('alt', 'enabled');
+    const btn = document.getElementById('dropdownMenuButton');
+    const roundKey = `${ronda} Round`;
 
+    btn.innerHTML = `<i class="fa fa-cog fa-spin fa-1x fa-fw fa-sm text-white-50"></i> ${roundKey}`;
+    btn.setAttribute('value', roundKey);
+    if (ELEMENTOS.icono) ELEMENTOS.icono.setAttribute('alt', 'enabled');
+    updateTooltip(STATE.grade, roundKey);
 }
+
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
@@ -315,21 +371,17 @@ function loadBanner() {
 function loadContent(level) {
     fetch("views/baseview.html")
         .then(response => {
-            if (!response.ok) {
-                throw new Error("No se pudo cargar baseview.html");
-            }
+            if (!response.ok) throw new Error("No se pudo cargar baseview.html");
             return response.text();
         })
         .then(html => {
             document.getElementById("container-body").innerHTML = html;
             refreshELEMENTOS();
 
-
             const titulo = document.getElementById("title");
             if (titulo && GRADES_MAP[level]) {
                 titulo.innerHTML = `<img src="img/bee.png" width="60" height="60" alt=""> ${GRADES_MAP[level]}`;
             }
-
             window.STATE = { grade: level, name: GRADES_MAP[level] };
 
             const dropdownBtn = document.getElementById("dropdownMenuButton");
@@ -337,22 +389,21 @@ function loadContent(level) {
                 dropdownBtn.innerHTML = `<i class="fa fa-cog fa-spin fa-1x fa-fw fa-sm text-white-50"></i> Normal Round`;
                 dropdownBtn.setAttribute("value", "Normal Round");
             }
+
             const icono = document.getElementById('icono');
             if (icono) {
-                const pool = DICCIONARIO[level]["Normal Round"] || [];
-                const used = getUsedSet(level, "Normal Round");
-                const left = pool.length - used.size;
-                icono.setAttribute('title', `${left} ${left === 1 ? 'word left' : 'words left'}`);
                 icono.setAttribute("onclick", `girarNumeros('${level}')`);
+                updateTooltip(level, "Normal Round");
             }
-            let resetbtn = document.getElementById("resetbutton");
+            const resetbtn = document.getElementById("resetbutton");
             if (resetbtn) {
+                resetbtn.removeAttribute("href");
                 resetbtn.setAttribute("onclick", `loadContent('${level}')`);
             }
-
         })
         .catch(error => console.error("Error cargando vista:", error));
 }
+
 
 function setActiveGrade(element, level) {
     document.querySelectorAll('#collapseUtilities .collapse-item')
