@@ -127,52 +127,67 @@ function resetearAnimacion() {
 }
 
 function girarNumeros(grade) {
-    if (ELEMENTOS.icono.getAttribute('alt') === 'disabled') return;
+  const E = ELEMENTOS;
+  if (!E?.icono || E.icono.getAttribute('alt') === 'disabled') return;
 
-    ELEMENTOS.icono.setAttribute('alt', 'disabled');
-
-    const valorElemento = ELEMENTOS.dropdownMenuButton.getAttribute('value');
-
-    if (valorElemento == 'notselect') {
-        resetearAnimacion();
-        iniciarAnimacionEscritura("Bzz choose a round");
-        return;
-    }
-    ELEMENTOS.numero.textContent = '0';
-    ELEMENTOS.numero.style.paddingTop = '15%';
-    ELEMENTOS.numero.style.fontSize = '10em';
-    const totalPalabrasRonda = DICCIONARIO[grade][valorElemento].length;
-
+  // 1) Validar round seleccionado
+  const roundValue = E.dropdownMenuButton?.getAttribute('value');
+  if (!roundValue || roundValue === 'notselect') {
     resetearAnimacion();
+    iniciarAnimacionEscritura("Bzz choose a round");
+    return;
+  }
 
-    intervalo = setInterval(() => {
-        let randomNum = getRandomInt(1, totalPalabrasRonda + 1);
-        ELEMENTOS.numero.textContent = randomNum;
-    }, 100);
+  // 2) Obtener pool y disponibles
+  const pool = (DICCIONARIO?.[grade]?.[roundValue]) || [];
+  const total = pool.length;
+  const restantes = total - palabrasSeleccionadas.length;
 
-    setTimeout(() => {
+  // Estilo del display
+  E.numero.textContent = '0';
+  E.numero.style.paddingTop = '15%';
+  E.numero.style.fontSize  = '10em';
 
-        clearInterval(intervalo);
+  // 3) Si no quedan, no animes: muestra 0 y mensaje
+  if (restantes <= 0) {
+    resetearAnimacion();
+    iniciarAnimacionEscritura("Bzz I ran out of Words");
+    E.icono.setAttribute('title', 'Quedan 0 palabras');
+    E.icono.setAttribute('alt', 'enabled');
+    return;
+  }
 
-        if (palabrasSeleccionadas.length === totalPalabrasRonda) {
-            ELEMENTOS.numero.textContent = '0';
-            iniciarAnimacionEscritura("Bzz I ran out of Words");
-            return;
-        }
+  // 4) Animación normal
+  E.icono.setAttribute('alt', 'disabled');
+  resetearAnimacion();
 
-        let finalNum, palabraAsociada;
+  intervalo = setInterval(() => {
+    const r = getRandomInt(1, total + 1);
+    E.numero.textContent = r;
+  }, 100);
 
-        do {
-            finalNum = getRandomInt(1, totalPalabrasRonda + 1);
-            palabraAsociada = DICCIONARIO[grade][valorElemento][finalNum - 1];
-        } while (palabrasSeleccionadas.includes(palabraAsociada));
+  setTimeout(() => {
+    clearInterval(intervalo);
 
-        ELEMENTOS.numero.textContent = finalNum;
-        palabrasSeleccionadas.push(palabraAsociada);
-        iniciarAnimacionEscritura(palabraAsociada, ELEMENTOS.numero, "");
+    // Elegir una palabra no usada
+    let finalNum, palabraAsociada;
+    do {
+      finalNum = getRandomInt(1, total + 1);
+      palabraAsociada = pool[finalNum - 1];
+    } while (palabrasSeleccionadas.includes(palabraAsociada));
 
-    }, 2000);
+    E.numero.textContent = finalNum;
+    palabrasSeleccionadas.push(palabraAsociada);
+
+    iniciarAnimacionEscritura(palabraAsociada, E.numero, "");
+
+    // Tooltip actualizado y habilitar nuevamente la lupa
+    const left = total - palabrasSeleccionadas.length;
+    E.icono.setAttribute('title', `Quedan ${left} palabra${left === 1 ? '' : 's'}`);
+    E.icono.setAttribute('alt', 'enabled');
+  }, 2000);
 }
+
 
 function iniciarAnimacionEscritura(palabra, numeroDiv) {
     const searchIcon = document.getElementById('icono');
@@ -329,4 +344,13 @@ function loadContent(level) {
         .catch(error => console.error("Error cargando vista:", error));
 }
 
+function setActiveGrade(element, level) {
+    document.querySelectorAll('#collapseUtilities .collapse-item')
+        .forEach(el => el.classList.remove('active'));
+    element.classList.add('active');
+    loadContent(level);
+}
 
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
