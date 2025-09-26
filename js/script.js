@@ -309,32 +309,38 @@ function ajustarTamanoTexto() {
 
 function agregarPalabraATabla(id, palabra) {
     const tabla = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-
     const nuevaFila = tabla.insertRow(0);
 
     // Agregar ID
     let celdaId = nuevaFila.insertCell(0);
-    celdaId.innerHTML = id;
+    // usar textContent en vez de innerHTML para preservar exactamente el texto
+    celdaId.textContent = id;
+    celdaId.style.textTransform = 'none';
 
     // Agregar Palabra
     let celdaPalabra = nuevaFila.insertCell(1);
-    celdaPalabra.innerHTML = palabra;
-
-
+    // textContent preserva mayúsculas/minúsculas tal cual
+    celdaPalabra.textContent = palabra;
+    // prevenir que CSS global aplique text-transform (lowercase/uppercase)
+    celdaPalabra.style.textTransform = 'none';
+    // opcional: guardar el original por si lo necesitas luego
+    celdaPalabra.setAttribute('data-original-word', palabra);
 }
 
 function agregarPalabraATabla2(id, palabra) {
     const tabla = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
     const nuevaFila = tabla.insertRow(0);
 
-    // Agregar ID
+
     let celdaId = nuevaFila.insertCell(0);
-    celdaId.innerHTML = id;
+    celdaId.textContent = id;
+    celdaId.style.textTransform = 'none';
 
-    // Agregar Palabra
+
     let celdaPalabra = nuevaFila.insertCell(1);
-    celdaPalabra.innerHTML = palabra;
-
+    celdaPalabra.textContent = palabra;
+    celdaPalabra.style.textTransform = 'none';
+    celdaPalabra.setAttribute('data-original-word', palabra);
 }
 
 function selectRonda(ronda) {
