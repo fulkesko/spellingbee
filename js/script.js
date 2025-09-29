@@ -209,7 +209,7 @@ function girarNumeros(grade) {
 
     E.numero.textContent = '0';
     E.numero.style.paddingTop = '15%';
-    E.numero.style.fontSize = '10em';
+    E.numero.style.fontSize = '9em';
 
     // si no quedan, no animes
     if (restantes <= 0) {
@@ -295,7 +295,7 @@ function ajustarTamanoTexto() {
     const contenedor = document.getElementById('contenedor');
     const texto = ELEMENTOS.texto;
 
-    let fontSize = 7.5;
+    let fontSize = 10;
     texto.style.fontSize = fontSize + 'em';
 
 
