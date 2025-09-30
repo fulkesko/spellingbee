@@ -206,7 +206,6 @@ function ajustarTamanoNumero(numeroEl) {
   numeroEl.style.lineHeight = '1';
   numeroEl.style.whiteSpace = 'nowrap'; 
 
-e
   setTimeout(() => {
 
     while ((numeroEl.scrollWidth > cont.clientWidth || numeroEl.scrollHeight > cont.clientHeight) && fontSizeEm > minEm) {
