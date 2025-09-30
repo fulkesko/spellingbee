@@ -209,7 +209,7 @@ function girarNumeros(grade) {
 
     E.numero.textContent = '0';
     E.numero.style.paddingTop = '15%';
-    E.numero.style.fontSize = '9em';
+    E.numero.style.fontSize = '7.5em';
 
     // si no quedan, no animes
     if (restantes <= 0) {
