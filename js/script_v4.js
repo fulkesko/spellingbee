@@ -233,7 +233,7 @@ function girarNumeros(grade) {
     const restantes = total - used.size;
 
     E.numero.textContent = '0';
-    E.numero.style.paddingTop = '';     
+    E.numero.style.paddingTop = '15%';     
     ajustarTamanoNumero(E.numero);
 
     // si no quedan, no animes
